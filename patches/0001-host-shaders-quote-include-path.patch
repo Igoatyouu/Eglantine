@@ -1,0 +1,33 @@
+diff --git a/src/video_core/host_shaders/CMakeLists.txt b/src/video_core/host_shaders/CMakeLists.txt
+index bc3d3db54c..1c838bb34e 100644
+--- a/src/video_core/host_shaders/CMakeLists.txt
++++ b/src/video_core/host_shaders/CMakeLists.txt
+@@ -168,7 +168,7 @@ foreach(SOURCE_FILE IN ITEMS ${SHADER_FILES})
+             OUTPUT
+                 ${SPIRV_HEADER_FILE}
+             COMMAND
+-                ${GLSLANGVALIDATOR} -V ${QUIET_FLAG} -I"${FIDELITYFX_INCLUDE_DIR}" ${GLSL_FLAGS} --variable-name ${SPIRV_VARIABLE_NAME} -o ${SPIRV_HEADER_FILE} ${SOURCE_FILE} --target-env ${SPIR_V_VERSION}
++                ${GLSLANGVALIDATOR} -V ${QUIET_FLAG} "-I${FIDELITYFX_INCLUDE_DIR}" ${GLSL_FLAGS} --variable-name ${SPIRV_VARIABLE_NAME} -o ${SPIRV_HEADER_FILE} ${SOURCE_FILE} --target-env ${SPIR_V_VERSION}
+             MAIN_DEPENDENCY
+                 ${SOURCE_FILE}
+         )
+@@ -204,7 +204,7 @@ foreach(VARIANT IN ITEMS ${SHADER_TYPE_VARIANTS})
+         OUTPUT
+             ${VARIANT_HEADER_FILE}
+         COMMAND
+-            ${GLSLANGVALIDATOR} -V ${QUIET_FLAG} -I"${FIDELITYFX_INCLUDE_DIR}" ${GLSL_FLAGS}
++            ${GLSLANGVALIDATOR} -V ${QUIET_FLAG} "-I${FIDELITYFX_INCLUDE_DIR}" ${GLSL_FLAGS}
+             -DSAMPLER_TYPE=${VARIANT_SAMPLER} -DTEXEL_TYPE=${VARIANT_TEXEL}
+             --variable-name ${VARIANT_VARIABLE_NAME} -o ${VARIANT_HEADER_FILE} ${VARIANT_SOURCE}
+             --target-env ${SPIR_V_VERSION}
+@@ -267,8 +267,8 @@ foreach(VARIANT IN ITEMS ${FSR3_VARIANTS})
+         OUTPUT
+             ${FSR3_HEADER_FILE}
+         COMMAND
+-            ${GLSLANGVALIDATOR} -V ${QUIET_FLAG} -S comp -I"${FSR3_GPU_DIR}"
+-            -I"${FSR3_GPU_DIR}/fsr3upscaler" ${FSR3_FLAGS} ${FSR3_DEFINE}
++            ${GLSLANGVALIDATOR} -V ${QUIET_FLAG} -S comp "-I${FSR3_GPU_DIR}"
++            "-I${FSR3_GPU_DIR}/fsr3upscaler" ${FSR3_FLAGS} ${FSR3_DEFINE}
+             --variable-name ${FSR3_VARIABLE_NAME} -o ${FSR3_HEADER_FILE} ${FSR3_SOURCE}
+             --target-env ${SPIR_V_VERSION}
+         MAIN_DEPENDENCY
