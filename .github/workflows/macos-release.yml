@@ -18,6 +18,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 # One run at a time, never cancelled: a release that is building finishes and publishes.
 concurrency:
@@ -60,6 +61,26 @@ jobs:
           git push -q "$origin" "refs/remotes/upstream/${UPSTREAM_BRANCH}:refs/heads/${UPSTREAM_BRANCH}"
           git push -q "$origin" --tags
           echo "nx2 at $(git rev-parse --short "upstream/${UPSTREAM_BRANCH}"), $(git tag | wc -l) tags"
+
+      # A push to nx2 starts upstream's own workflows (their full build matrix and release), which
+      # GitHub only lists once they have run: each one found is disabled and its runs cancelled.
+      - name: Keep upstream's workflows off
+        continue-on-error: true
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          sleep 20
+          gh api "repos/${GITHUB_REPOSITORY}/actions/workflows" --paginate \
+            --jq '.workflows[] | select(.path != ".github/workflows/macos-release.yml") | [.id, .state, .path] | @tsv' |
+          while IFS=$'\t' read -r id state path; do
+            [ "$state" = "active" ] && gh api -X PUT "repos/${GITHUB_REPOSITORY}/actions/workflows/${id}/disable" && echo "disabled $path"
+            for status in queued in_progress; do
+              gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/${id}/runs?status=${status}" --jq '.workflow_runs[].id' |
+                while read -r run; do gh api -X POST "repos/${GITHUB_REPOSITORY}/actions/runs/${run}/cancel" > /dev/null && echo "cancelled run $run of $path"; done
+            done
+          done
 
       - name: Pick the release to build
         id: pick
